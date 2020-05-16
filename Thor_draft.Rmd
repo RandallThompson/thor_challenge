@@ -1,0 +1,247 @@
+---
+title: "Thor"
+author: "Randall Thompson"
+date: "5/14/2020"
+output: html_document
+runtime: shiny
+---
+```{r}
+library(shiny)
+library(imager)
+```
+
+Calcualte: bar weight <barcat> * (bar len <barcat> + hand <handcat>) * cog + 
+{plate weight * (platenum <plateweight> + platecat <platecat>} + hand <handcat>) * cog 
+
+{} is dropdown of 5,10,25,45 metal and 10,15,25,45 bumper
+plate 1 plus plate 2 plus plate 3
+
+Inputs
+barcat - 45,35,15
+```{r}
+#test adding pic to df, nope
+# bartypewpic <- list(type=c("Mens", "Womens", "Training"), barweight=c(45,35,15), barlength=c(86.75, 79.13, 69.5), sleeveweight=c(11.25, 8.75, 3.75), sleevelength=c(18.4, 15, 9), pic=c(mensbarpic, trainingbarpic, womensbarpic))
+```
+
+
+```{r}
+bartype <- as.data.frame(list(type=c("Mens", "Womens", "Training"), barweight=c(45,35,15), barlength=c(86.75, 79.13, 69.5), sleeveweight=c(11.25, 8.75, 3.75), sleevelength=c(18.4, 15, 9)))
+
+platetype <- as.data.frame(list(type=c("Metal 5", "Metal 10", "Metal 25", "Metal 45", "Bumper 10", "Bumper 15", "Bumper 25", "Bumper 45"), platelength=c(.75, 1, 1.25, 1.5, 1, 1.37, 2, 3.25), plateweight=c(5, 10, 25, 45, 10, 15, 25, 45)))
+
+hand <- as.data.frame(list(position=c("Bar", "Sleeve"), handlength=c(-5, 0)))
+
+#load images
+
+#mensbarpic <- load.image("https://raw.githubusercontent.com/RandallThompson/thor_challenge/master/mensbar.png")
+# womensbarpic <- load.image("https://raw.githubusercontent.com/RandallThompson/thor_challenge/master/bellabar.png")
+# trainingbarpic <- load.image("https://raw.githubusercontent.com/RandallThompson/thor_challenge/master/trainingbar.png")
+# handbar <- load.image()
+# handsleeve <- load.image()
+# metal5 <- load.image()
+# metal10 <- load.image()
+# metal25 <- load.image()
+# metal45 <- load.image()
+# bumper10 <- load.image()
+# bumper15 <- load.image()
+# bumper25 <- load.image()
+# bumper45 <- load.image()
+
+#test
+#png(mensbarpic)
+#dev.off()
+```
+
+```{r}
+
+ui <- fluidPage(
+    headerPanel("Calculating the Thor Challenge"),
+    mainPanel(
+      #bar
+      imageOutput("barimg")
+      
+      # ifelse(input$bar == "Mens",
+      # img(src="https://raw.githubusercontent.com/RandallThompson/thor_challenge/master/mensbar.png"),
+      # img(src="https://raw.githubusercontent.com/RandallThompson/thor_challenge/master/bellabar.png"))
+      
+      
+      #imageOutput("myImage"), 
+      #uiOutput("img")
+      # imageOutput(),
+      # imageOutput(),
+      # imageOutput(),
+      # imageOutput(),
+      # textOutput(),
+      # textOutput(),
+      # textOutput(),
+      # 
+      # verbatimTextOutput()
+      # 
+        ),
+    fluidRow(
+      column(4, selectInput('bar', "Bar Type", bartype$type, selected = 'Mens')
+        ),
+      column(4, selectInput('hand', 'Hand Position', hand$position, selected = 'Bar')
+        ),
+      column(4, selectInput('plate1', 'Plate 1', platetype$type),
+                selectInput('plate2', 'Plate 2', platetype$type),
+                selectInput('plate3', 'Plate 3', platetype$type)
+        )
+      )
+)
+
+server <- function(input, output) {
+  
+ 
+  
+ #  re <- reactiveValues({
+ # ifelse(input$bar == "Mens",
+ #      img(src="https://raw.githubusercontent.com/RandallThompson/thor_challenge/master/mensbar.png"),
+ #      img(src="https://raw.githubusercontent.com/RandallThompson/thor_challenge/master/bellabar.png"))
+ #  })
+ # output$barimg <- renderImage({ re()
+ # })
+  
+  #   output$img <- renderUI({
+  #   tags$img(src = "https://raw.githubusercontent.com/RandallThompson/thor_challenge/master/mensbar.png")
+  # })
+    output$myImage <- renderImage({
+    # A temp file to save the output.
+    # This file will be removed later by renderImage
+    outfile <- tempfile(
+      #img(src="https://raw.githubusercontent.com/RandallThompson/thor_challenge/master/mensbar.png")
+      fileext = '.png')
+
+    # Generate the PNG
+    png(outfile, width=400, height=300)
+    dev.off()
+
+    # Return a list containing the filename
+    list(src = outfile,
+         contentType = 'image/png',
+         width = 400,
+         height = 300,
+         alt = "This is alternate text")
+  })
+    
+    
+  
+  #bar numbers
+  output$barw <- reactive({
+            bartype %>%
+            filter(type == input$bar) %>% 
+            select(barweight)
+    })
+  output$barl <- reactive({
+            bartype %>%
+            filter(type == input$bar) %>% 
+            select(barlength)
+    })
+  output$sleevew <- reactive({
+            bartype %>%
+            filter(type == input$bar) %>% 
+            select(sleeveweight)
+    })
+  output$sleevel <- reactive({
+            bartype %>%
+            filter(type == input$bar) %>% 
+            select(sleevelength)
+    })
+  
+  #hand numbers
+  output$hand <- reactive({
+            hand %>%
+            filter(position == input$hand) %>% 
+            select(handlength)
+    })
+  
+  #plate numbers
+  output$plate1l <- reactive({
+            platetype %>%
+            filter(type == input$plate1) %>% 
+            select(platelength)
+    })
+  output$plate1w <- reactive({
+            platetype %>%
+            filter(type == input$plate1) %>% 
+            select(plateweight)
+    })
+  output$plate2l <- reactive({
+            platetype %>%
+            filter(type == input$plate2) %>% 
+            select(platelength)
+    })
+  output$plate2w <- reactive({
+            platetype %>%
+            filter(type == input$plate2) %>% 
+            select(plateweight)
+    })
+  output$plate3l <- reactive({
+            platetype %>%
+            filter(type == input$plate3) %>% 
+            select(platelength)
+    })
+  output$plate3w <- reactive({
+            platetype %>%
+            filter(type == input$plate3) %>% 
+            select(plateweight)
+    })
+
+
+  
+    #total weight
+    output$calc <- renderPrint()
+    
+    #text for calc
+    output$barnum <- renderText()
+      
+    output$handnum <- renderText()
+      
+    output$platenum1 <- renderText()
+      
+    output$platenum2 <- renderText()
+      
+    output$platenum3 <- renderText()
+    
+    #picture    
+    output$barpic <- renderImage()
+    
+  #   output$image <- renderUI({
+  #   tags$img(src = "https://www.rstudio.com/wp-content/uploads/2014/03/blue-125.png")
+  # })  
+    output$handpic <- renderImage()
+      
+    output$platepic1 <- renderImage()
+      
+    output$platepic2 <- renderImage()
+      
+    output$platepic3 <- renderImage()
+  
+    
+    
+    output$distPlot <- renderPlot({
+        # generate bins based on input$bins from ui.R
+        x    <- faithful[, 2]
+        bins <- seq(min(x), max(x), length.out = input$bins + 1)
+
+        # draw the histogram with the specified number of bins
+        hist(x, breaks = bins, col = 'darkgray', border = 'white')
+    })
+}
+
+# Run the application 
+shinyApp(ui = ui, server = server)
+
+```
+
+  column(
+      6,
+      uiOutput(outputId = "image")
+    )
+  )
+)
+server <- function(input, output) {
+  output$image <- renderUI({
+    tags$img(src = "https://www.rstudio.com/wp-content/uploads/2014/03/blue-125.png")
+  })
+}
